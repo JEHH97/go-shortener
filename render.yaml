@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: go-shortener
+    runtime: docker
+    plan: starter
+    healthCheckPath: /healthz
+    envVars:
+      - key: APP_ADDR
+        value: :8080
+      - key: BASE_URL
+        value: https://your-service.example
+      - key: DATABASE_URL
+        fromDatabase:
+          name: go-shortener-db
+          property: connectionString
+      - key: REDIS_ADDR
+        sync: false
+      - key: REDIS_PASSWORD
+        sync: false
+      - key: API_KEY
+        sync: false
+      - key: RATE_LIMIT
+        value: 20
+      - key: RATE_WINDOW
+        value: 1m
+databases:
+  - name: go-shortener-db
+    databaseName: shortener
+    user: shortener
+    plan: basic-256mb

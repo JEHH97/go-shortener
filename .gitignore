@@ -1,0 +1,6 @@
+.env*
+!.env.example
+coverage.out
+*.test
+dist/
+graphify-out/
