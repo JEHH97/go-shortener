@@ -8,18 +8,18 @@ import (
 )
 
 type Config struct {
-	Address, BaseURL, DatabaseURL, RedisAddr, RedisPassword, APIKey string
-	RateLimit, ClickWorkers, ClickBuffer, ClickBatch                int
-	RateWindow                                                      time.Duration
-	LogLevel                                                        slog.Level
+	Address, BaseURL, DatabaseURL, RedisURL, RedisAddr, RedisPassword, APIKey string
+	RateLimit, ClickWorkers, ClickBuffer, ClickBatch                          int
+	RateWindow                                                                time.Duration
+	LogLevel                                                                  slog.Level
 }
 
 func Load() Config {
 	return Config{
 		Address: env("APP_ADDR", ":8080"), BaseURL: env("BASE_URL", "http://localhost:8080"),
 		DatabaseURL: env("DATABASE_URL", "postgres://shortener:shortener@localhost:5432/shortener?sslmode=disable"),
-		RedisAddr:   env("REDIS_ADDR", "localhost:6379"), RedisPassword: env("REDIS_PASSWORD", ""),
-		APIKey: env("API_KEY", "replace-this-development-key"), RateLimit: envInt("RATE_LIMIT", 20),
+		RedisURL:    os.Getenv("REDIS_URL"), RedisAddr: env("REDIS_ADDR", "localhost:6379"), RedisPassword: env("REDIS_PASSWORD", ""),
+		APIKey: env("API_KEY", "replace-this-development-key"), RateLimit: envInt("RATE_LIMIT", 10),
 		RateWindow: envDuration("RATE_WINDOW", time.Minute), ClickWorkers: envInt("CLICK_WORKERS", 2),
 		ClickBuffer: envInt("CLICK_BUFFER", 2048), ClickBatch: envInt("CLICK_BATCH", 100), LogLevel: parseLevel(env("LOG_LEVEL", "info")),
 	}

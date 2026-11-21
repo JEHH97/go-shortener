@@ -5,9 +5,9 @@ services:
       APP_ADDR: :8080
       BASE_URL: ${BASE_URL:-http://localhost:8080}
       DATABASE_URL: postgres://shortener:shortener@postgres:5432/shortener?sslmode=disable
-      REDIS_ADDR: redis:6379
+      REDIS_URL: redis://redis:6379
       API_KEY: ${API_KEY:-local-demo-key}
-      RATE_LIMIT: 20
+      RATE_LIMIT: 10
       RATE_WINDOW: 1m
       CLICK_WORKERS: 2
       CLICK_BUFFER: 2048

@@ -30,7 +30,7 @@ func main() {
 		os.Exit(1)
 	}
 	defer db.Close()
-	cache, err := redisstore.Open(ctx, cfg.RedisAddr, cfg.RedisPassword)
+	cache, err := redisstore.Open(ctx, cfg.RedisURL, cfg.RedisAddr, cfg.RedisPassword)
 	if err != nil {
 		logger.Error("redis connection failed", "error", err)
 		os.Exit(1)

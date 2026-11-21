@@ -4,7 +4,7 @@ A small, production-minded URL shortener that keeps redirect handling fast while
 
 Repository: [github.com/JEHH97/go-shortener](https://github.com/JEHH97/go-shortener)
 
-**Demo:** [Live demo placeholder](https://example.com/demo)
+**Demo:** _coming soon_
 
 ## The problem
 
@@ -38,6 +38,7 @@ flowchart LR
 
 - **Async click pipeline:** redirects enqueue a compact event into a bounded channel. A configurable worker pool batches inserts, leaving database aggregation writes off the redirect response path. Queue overload is logged and drops only analytics events. Shutdown closes the channel and workers flush their pending batches within the graceful shutdown window.
 - **Rate limiter:** a Redis Lua script implements a per-client-IP sliding-window log using a sorted set. The script prunes old timestamps, counts the active window, and admits or rejects atomically across app instances. Rejections include `Retry-After`.
+- **Demo safeguards:** link creation is rate-limited to 10 requests per client IP per minute in the hosted blueprint (the application default is also 10/minute). Destination URLs are capped at 2,048 bytes. Public `/metrics` contains aggregate service counters and latency only; per-link click aggregates at `/api/links/{code}/stats` are public to anyone who knows the short code. Use the protected delete endpoint to remove links (see [Deployment](DEPLOY.md)).
 - **SSRF and open-redirect safeguards:** only HTTP(S) URLs without embedded credentials are accepted. URL length is capped; localhost suffixes and private, loopback, link-local, unspecified, and multicast IPs are rejected. Hostnames are resolved at creation and rejected if any answer is non-public. This reduces abuse risk but cannot eliminate DNS rebinding after validation; use network egress controls for stronger isolation.
 - **Cache-aside:** redirects check Redis then PostgreSQL; successful database reads populate cache with an expiry-aware TTL. Link deletion invalidates the cache.
 - **Analytics privacy:** country is read only from `CF-IPCountry` or `X-Country` when provided; referer and coarse user-agent family are aggregated. No IP address is stored with click events.
@@ -63,7 +64,7 @@ To configure a local process, copy `.env.example` to `.env` and supply developme
 | `GET` | `/api/links/{code}/stats` | Total clicks, daily counts, top referers, country, and browser-family aggregates. |
 | `DELETE` | `/api/links/{code}` | Delete with `Authorization: Bearer <API_KEY>`. |
 | `GET` | `/healthz` | Liveness response. |
-| `GET` | `/metrics` | Redirect totals and latency histogram, rate-limited count, and cache-hit ratio. |
+| `GET` | `/metrics` | Public aggregate redirect totals and latency histogram, rate-limited count, and cache-hit ratio; contains no URL or client-IP labels. |
 
 Create requests are rate limited by client IP. The server uses the peer address rather than trusting arbitrary forwarded-IP headers.
 

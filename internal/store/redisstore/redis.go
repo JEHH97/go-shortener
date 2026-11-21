@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jesush1236/go-shortener/internal/domain"
@@ -12,13 +14,31 @@ import (
 
 type Store struct{ client *redis.Client }
 
-func Open(ctx context.Context, address, password string) (*Store, error) {
-	client := redis.NewClient(&redis.Options{Addr: address, Password: password})
+func Open(ctx context.Context, connectionURL, address, password string) (*Store, error) {
+	options, err := optionsFor(connectionURL, address, password)
+	if err != nil {
+		return nil, err
+	}
+	client := redis.NewClient(options)
 	if err := client.Ping(ctx).Err(); err != nil {
 		_ = client.Close()
 		return nil, err
 	}
 	return &Store{client: client}, nil
+}
+
+func optionsFor(connectionURL, address, password string) (*redis.Options, error) {
+	if connectionURL == "" {
+		return &redis.Options{Addr: address, Password: password}, nil
+	}
+	if !strings.HasPrefix(connectionURL, "redis://") && !strings.HasPrefix(connectionURL, "rediss://") {
+		return nil, fmt.Errorf("REDIS_URL must use redis:// or rediss://")
+	}
+	options, err := redis.ParseURL(connectionURL)
+	if err != nil {
+		return nil, fmt.Errorf("parse REDIS_URL: %w", err)
+	}
+	return options, nil
 }
 func (s *Store) Close() error { return s.client.Close() }
 
