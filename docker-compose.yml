@@ -22,7 +22,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
   postgres:
-    image: postgres:17-alpine
+    image: postgres:17.12-alpine3.24
     environment:
       POSTGRES_DB: shortener
       POSTGRES_USER: shortener
@@ -35,7 +35,7 @@ services:
       timeout: 3s
       retries: 10
   redis:
-    image: redis:7-alpine
+    image: redis:7.4.12-alpine3.22
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - redis-data:/data

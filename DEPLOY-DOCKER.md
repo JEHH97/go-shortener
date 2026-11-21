@@ -4,7 +4,7 @@ This guide runs the prebuilt `ghcr.io/jehh97/go-shortener` image with PostgreSQL
 
 ## Images and runtime settings
 
-The publishing workflow creates `vX.Y.Z`, `sha-<short-commit>`, and `latest` tags. Pin a release tag in production-like demos; use `latest` only for a quick demo. The image is built for `linux/amd64`, runs as a non-root user, and has a Docker healthcheck against `/healthz`.
+The publishing workflow creates `vX.Y.Z` and `sha-<short-commit>` tags; it does not publish a floating `latest` tag. The default release is `v1.0.1`. The image is built for `linux/amd64`, runs as a non-root user, and has a Docker healthcheck against `/healthz`.
 
 If the GHCR package is private, authenticate on the deployment host with a GitHub PAT that has `read:packages`:
 
@@ -21,7 +21,7 @@ cp deploy/.env.example deploy/.env
 openssl rand -hex 32 # repeat separately for API_KEY, POSTGRES_PASSWORD, REDIS_PASSWORD
 ```
 
-Set `BASE_URL` to the public HTTPS origin without a trailing slash. `RATE_LIMIT` and `RATE_WINDOW` control link creation limits (defaults: 10 and `1m`). `APP_PORT` is the host-side port (default `8080`); the app's internal port remains `8080`.
+Set `BASE_URL` to the public HTTPS origin without a trailing slash. `RATE_LIMIT` and `RATE_WINDOW` control link creation limits (defaults: 10 and `1m`). `APP_BIND_ADDRESS` and `APP_PORT` control the host binding (defaults `127.0.0.1` and `8080`); the app's internal port remains `8080`.
 
 Start the services:
 
@@ -30,11 +30,11 @@ docker compose --env-file deploy/.env -f deploy/docker-compose.prod.yml up -d
 docker compose --env-file deploy/.env -f deploy/docker-compose.prod.yml ps
 ```
 
-The application healthcheck requires `/healthz` to return HTTP 200. PostgreSQL and Redis have readiness healthchecks; neither publishes a host port. Use `docker compose ... logs -f app` to inspect startup.
+The application healthcheck requires `/healthz` to return HTTP 200. The app, PostgreSQL, and Redis have read-only root filesystems, dropped capabilities, no-new-privileges, and resource limits. PostgreSQL and Redis have readiness healthchecks; neither publishes a host port. Use `docker compose ... logs -f app` to inspect startup.
 
 ## TLS reverse proxy
 
-Terminate TLS at a reverse proxy and point it at the private app port. For Caddy, publish the application on loopback only by setting `APP_PORT=127.0.0.1:8080` in the Compose environment file, then use:
+Terminate TLS at a reverse proxy and point it at the private app port. The application binds to loopback by default (`APP_BIND_ADDRESS=127.0.0.1`). For Caddy, use:
 
 ```caddyfile
 short.example.com {

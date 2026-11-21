@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/jehh97/go-shortener:${GO_SHORTENER_VERSION:-latest}
+    image: ghcr.io/jehh97/go-shortener:${GO_SHORTENER_VERSION:-v1.0.1}
     environment:
       APP_ADDR: :8080
       BASE_URL: ${BASE_URL:?Set BASE_URL in deploy/.env}
@@ -11,7 +11,7 @@ services:
       RATE_WINDOW: ${RATE_WINDOW:-1m}
       LOG_LEVEL: info
     ports:
-      - "${APP_PORT:-8080}:8080"
+      - "${APP_BIND_ADDRESS:-127.0.0.1}:${APP_PORT:-8080}:8080"
     depends_on:
       postgres:
         condition: service_healthy
@@ -24,9 +24,19 @@ services:
       start_period: 10s
       retries: 3
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m
+    mem_limit: 128m
+    pids_limit: 64
 
   postgres:
-    image: postgres:17.6-alpine3.22
+    image: postgres:17.12-alpine3.24
+    user: postgres
     environment:
       POSTGRES_DB: shortener
       POSTGRES_USER: ${POSTGRES_USER:-shortener}
@@ -39,9 +49,20 @@ services:
       timeout: 3s
       retries: 10
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m
+      - /var/run/postgresql:rw,noexec,nosuid,size=16m
+    mem_limit: 512m
+    pids_limit: 128
 
   redis:
-    image: redis:7.4.2-alpine3.21
+    image: redis:7.4.12-alpine3.22
+    user: redis
     environment:
       REDIS_PASSWORD: ${REDIS_PASSWORD:?Set REDIS_PASSWORD in deploy/.env}
     command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:?Set REDIS_PASSWORD in deploy/.env}"]
@@ -53,6 +74,15 @@ services:
       timeout: 3s
       retries: 10
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m
+    mem_limit: 128m
+    pids_limit: 64
 
 volumes:
   postgres-data:
