@@ -21,6 +21,11 @@ import (
 )
 
 func main() {
+	if len(os.Args) == 2 && os.Args[1] == "healthcheck" {
+		healthcheck()
+		return
+	}
+
 	cfg := config.Load()
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: cfg.LogLevel}))
 	ctx := context.Background()
@@ -59,5 +64,17 @@ func main() {
 	defer done()
 	if err := server.Shutdown(shutdown); err != nil {
 		logger.Error("graceful shutdown failed", "error", err)
+	}
+}
+
+func healthcheck() {
+	client := &http.Client{Timeout: time.Second}
+	response, err := client.Get("http://127.0.0.1:8080/healthz")
+	if err != nil {
+		os.Exit(1)
+	}
+	defer func() { _ = response.Body.Close() }()
+	if response.StatusCode != http.StatusOK {
+		os.Exit(1)
 	}
 }

@@ -1,5 +1,7 @@
 # Deploy the demo on Neon and Render
 
+For deployment on a server with your own Docker-hosted PostgreSQL and Redis, see [DEPLOY-DOCKER.md](DEPLOY-DOCKER.md).
+
 This walkthrough deploys the Go API and its Redis cache on Render's free plans, with PostgreSQL hosted by Neon. It does not configure a custom domain or run any deployment automatically from this repository.
 
 ## Secrets and generated values

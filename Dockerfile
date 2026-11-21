@@ -8,5 +8,10 @@ RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/shortener ./cmd/sh
 FROM gcr.io/distroless/static-debian12:nonroot
 WORKDIR /
 COPY --from=build /out/shortener /shortener
+LABEL org.opencontainers.image.source="https://github.com/JEHH97/go-shortener" \
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.title="Go Shortener" \
+      org.opencontainers.image.description="A non-root URL shortener API with PostgreSQL, Redis, and aggregate click analytics."
 EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 CMD ["/shortener", "healthcheck"]
 ENTRYPOINT ["/shortener"]

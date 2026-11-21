@@ -96,7 +96,7 @@ The optional integration tests skip unless those environment variables are prese
 
 ## Deployment
 
-See [DEPLOY.md](DEPLOY.md) and the reference `render.yaml`. This project intentionally contains no deploy automation.
+See [DEPLOY-DOCKER.md](DEPLOY-DOCKER.md) for a GHCR-based public demo deployment, or [DEPLOY.md](DEPLOY.md) for the existing hosted blueprint. This project intentionally contains no deploy automation.
 
 ## License
 
